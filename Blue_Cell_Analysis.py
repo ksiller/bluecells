@@ -30,10 +30,10 @@ def get_cell_masks(imp, mask):
     channels = ChannelSplitter.split(imp2)
     blue = ImageCalculator.run(channels[2], channels[0], "Subtract create")
     blue = ImageCalculator.run(blue, mask, "And create")
-    blue.show()
+    # blue.show()
 
     cell_mask = blue.duplicate()
-    cell_mask.show()
+    # cell_mask.show()
 
     rm.reset()
     Prefs.blackBackground = False
