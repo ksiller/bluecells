@@ -4,6 +4,7 @@
 # @ Double (label="Min droplet area ", min=0.001, stepSize=0.01, value=0.1) min_area
 # @ Double (label="Max droplet area ", min=0.001, stepSize=0.01, value=10.0) max_area
 # @ Boolean (label="Save binary mask", default=False, required=False) save_mask
+# @ Boolean (label="Show images", default=False, required=False) show_images
 
 import sys
 import math
@@ -44,7 +45,6 @@ def process(imagestack, min_area, max_area, ch_no=1, zstart=1, zend=None, tstart
     imp = Duplicator().run(imagestack, ch_no, ch_no, zstart, zend, tstart, tend) 
     imp = ZProjector.run(imp, "max",1, 25) # is this last frame or slice?
     imp.setTitle(title)
-    imp.show()
     
     mask = imp.duplicate()
     IJ.setAutoThreshold(mask, "Yen")
@@ -73,14 +73,19 @@ if not os.path.isdir(outputdir):
     os.makedirs(outputdir)
 	
 img_files = get_files(inputs)
-print img_files
+if show_images and len(img_files) > 5:
+    print "Ignoring show_images flag."
+    show_images = False
+    
 for item in img_files:
     try:
         img = open_image(item)
         dims = img.getDimensions()
         print 'Processing', item, "-", dims[2],"channel[s],", dims[3], "slice[s],", dims[4], "frame[s]"
         mask = process(img, min_area, max_area, ch_no=ch_no, zend=19, tend=1)
-        mask.show()
+        if show_images:
+            img.show()
+            mask.show()
         if save_mask:
             save_image(mask, outputdir)
     except:
