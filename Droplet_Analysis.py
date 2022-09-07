@@ -13,19 +13,8 @@ from loci.plugins import BF
 from loci.plugins.in import ImporterOptions
 from ij.plugin.frame import RoiManager
 from ij.plugin import Duplicator, ZProjector
-from ij import WindowManager
-from ij.process import ImageStatistics as IS
-from ij.measure import ResultsTable
-from java.awt import Polygon, Color
-from ij.gui import Overlay, Roi, Line, PolygonRoi, Plot
-from sc.fiji.analyzeSkeleton import AnalyzeSkeleton_, Edge, Point
-from java.lang import Double
-from java.util import ArrayList
-from itertools import islice
 
 import os
-from os import path
-
 
 def read_dir(directory, ext):
     files = os.listdir(directory)
@@ -38,7 +27,6 @@ def get_files(inputs, ext=["czi"]):
     exists = [f for f in flat_filtered if os.path.exists(f)]
     return exists
 
-
 def open_image(imgfile):
 	options = ImporterOptions()
 	options.setId(imgfile)
@@ -47,10 +35,8 @@ def open_image(imgfile):
 	imps = BF.openImagePlus(options)
 	return imps[0]
 
-
 def process(imagestack, min_area, max_area, ch_no=1, zstart=1, zend=None, tstart=1, tend=None):
     rm = RoiManager.getRoiManager()
-    rm.reset()
     title = imagestack.getTitle()
     
     zend = imagestack.getDimensions()[3] if zend is None else zend
@@ -69,12 +55,8 @@ def process(imagestack, min_area, max_area, ch_no=1, zstart=1, zend=None, tstart
     IJ.run(
         mask, 
         "Analyze Particles...", 
-        "size="+str(min_area)+"-"+str(max_area) + " clear add"
+        "size="+str(min_area)+"-"+str(max_area) + "add"
     )
-    #rois = rm.getRoisAsArray()
-    #for r in rois:
-    #    imp.setRoi(r)
-    #    print r
     rm.runCommand(imp, "Measure")
     mask.setTitle(".".join(title.split(".")[:-1])+"-mask")
     return mask
@@ -87,20 +69,20 @@ def save_image(img, outputdir, suffix=""):
     
 # Main code
 outputdir = str(outputdir)
-if not path.isdir(outputdir):
+if not os.path.isdir(outputdir):
     os.makedirs(outputdir)
 	
 img_files = get_files(inputs)
 print img_files
 for item in img_files:
-    #try:
+    try:
         img = open_image(item)
         dims = img.getDimensions()
         print 'Processing', item, "-", dims[2],"channel[s],", dims[3], "slice[s],", dims[4], "frame[s]"
         mask = process(img, min_area, max_area, ch_no=ch_no, zend=19, tend=1)
         mask.show()
         if save_mask:
-            save_image(mask, outputdir, suffix="-mask")
-    #except:
+            save_image(mask, outputdir)
+    except:
         print 'Error, skipping', item
 print 'Done.\n'
